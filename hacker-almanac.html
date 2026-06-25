@@ -595,6 +595,105 @@ h1,h2,h3,h4{
   text-align: right;
 }
 
+/* TOOLKIT OVERLAY */
+.toolkit-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: flex-start; justify-content: center;
+  z-index: 200;
+  overflow-y: auto;
+  padding: 40px 20px;
+}
+.toolkit-overlay.open{ display: flex; }
+.toolkit-card{
+  background: var(--bg);
+  border: 2px solid var(--rule-dark);
+  padding: 24px 28px 28px;
+  max-width: 880px;
+  width: 100%;
+}
+.toolkit-card h3{
+  font-family: "Helvetica Neue Condensed","Arial Narrow",sans-serif;
+  font-stretch: condensed;
+  font-size: 22px;
+  margin: 0 0 4px;
+  letter-spacing: 0.04em;
+}
+.toolkit-card .subtitle{
+  font-family: ui-monospace,"SF Mono",monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--rule-dark);
+  margin-bottom: 16px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.toolkit-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.tk-card{
+  border: 1px solid var(--rule-dark);
+  background: var(--bg-alt);
+  padding: 0;
+  display: flex; flex-direction: column;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--fg);
+  transition: background 0.1s;
+}
+.tk-card:hover{ background: var(--bg-tint); }
+.tk-card .tk-no{
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-family: ui-monospace,"SF Mono",monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--rule-dark);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tk-card .tk-no .arr{ font-size: 14px; }
+.tk-card .tk-body{ padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; }
+.tk-card .tk-name{
+  font-family: "Helvetica Neue Condensed","Arial Narrow",sans-serif;
+  font-stretch: condensed;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  margin: 0 0 4px;
+}
+.tk-card .tk-tag{
+  font-size: 12px;
+  color: var(--fg-muted);
+  line-height: 1.4;
+  flex: 1;
+}
+.tk-card .tk-tech{
+  font-family: ui-monospace,"SF Mono",monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--rule);
+}
+:root[data-mode="night"] .tk-card .tk-tech{ color: var(--accent); }
+.toolkit-card .dismiss{
+  margin-top: 18px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  text-align: right;
+  font-family: ui-monospace,"SF Mono",monospace;
+}
+
 /* HIDE non-matches when filtering */
 .ha-part.filtered{ display: none; }
 .sidebar a.nav-item.filtered{ display: none; }
@@ -631,7 +730,7 @@ h1,h2,h3,h4{
     --glow: none;
   }
   body::after{ display: none; }
-  .sidebar, .topbar, .help-overlay{ display: none !important; }
+  .sidebar, .topbar, .help-overlay, .toolkit-overlay{ display: none !important; }
   .app{ display: block; }
   .main{ max-width: none; padding: 0; margin: 0; }
   .ha-part{
@@ -660,7 +759,7 @@ h1,h2,h3,h4{
 <!-- ============================================================ SIDEBAR ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-head">
-    <div class="brand">HACKER ALMANAC<small>FIELD INSTRUMENT 041 · v0.2.0</small></div>
+    <div class="brand">HACKER ALMANAC<small>FIELD INSTRUMENT 041 · v0.3.0</small></div>
   </div>
   <nav id="nav">
     <div class="chapter">Ch. 1 · Hardware</div>
@@ -730,6 +829,7 @@ h1,h2,h3,h4{
       <span class="opt active" data-mode-opt="night">OPS CENTER</span>
     </div>
     <button class="scanline-toggle" id="scanToggle" title="Toggle CRT scanlines">SCAN: ON</button>
+    <button class="help-btn" id="toolkitBtn" title="Toolkit (t)" aria-label="Show toolkit" style="width:auto;padding:0 10px;font-size:11px;letter-spacing:0.08em;">TOOLKIT</button>
     <button class="help-btn" id="helpBtn" title="Keyboard shortcuts (?)" aria-label="Show keyboard shortcuts">?</button>
   </header>
 
@@ -2835,7 +2935,7 @@ PRIVMSG #gibson :hack the planet
 
   <footer class="colophon">
     <div style="max-width: 980px; margin: 0 auto; padding: 0 40px;">
-      <p><b>HACKER ALMANAC</b> · Field Instrument 041 · v0.2.0 · by M.B. Parks (N1HNP)<br>
+      <p><b>HACKER ALMANAC</b> · Field Instrument 041 · v0.3.0 · by M.B. Parks (N1HNP)<br>
       A companion to Maker Almanac (FI-007). Single-file, no build step, GPL-3.0.<br>
       Reference material is for study, defense, and historical context. The catalog does not ship weaponized code.<br>
       "Make. Hack. Learn. Share. Repeat."</p>
@@ -2845,11 +2945,86 @@ PRIVMSG #gibson :hack the planet
 
 </div><!-- /.app -->
 
+<div class="toolkit-overlay" id="toolkitOverlay" role="dialog" aria-label="Toolkit">
+  <div class="toolkit-card">
+    <h3>TOOLKIT</h3>
+    <div class="subtitle"><span>Interactive widgets across the catalog</span><span>7 PARTS</span></div>
+    <div class="toolkit-grid">
+
+      <a class="tk-card" href="#ha-003" data-tk-target="ha-003">
+        <div class="tk-no"><span>HA-003</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">HEXSCOPE</div>
+          <div class="tk-tag">File inspector with magic-byte atlas, Shannon entropy, and drag-and-drop. Drop any file or paste hex to identify.</div>
+          <div class="tk-tech">FileReader · Entropy · 19 sigs</div>
+        </div>
+      </a>
+
+      <a class="tk-card" href="#ha-012" data-tk-target="ha-012">
+        <div class="tk-no"><span>HA-012</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">DIALTONE</div>
+          <div class="tk-tag">DTMF tone generator with dial pad. Type a number or tap the 4x4 matrix to play dual-tone audio at adjustable tone and gap timing.</div>
+          <div class="tk-tech">Web Audio · 16 tones · 697-1633 Hz</div>
+        </div>
+      </a>
+
+      <a class="tk-card" href="#ha-014" data-tk-target="ha-014">
+        <div class="tk-no"><span>HA-014</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">SUBNET</div>
+          <div class="tk-tag">IPv4 CIDR calculator. Get network, broadcast, mask, host range. Second field tests whether an IP sits inside the subnet.</div>
+          <div class="tk-tech">CIDR /0 to /32 · contains check</div>
+        </div>
+      </a>
+
+      <a class="tk-card" href="#ha-022" data-tk-target="ha-022">
+        <div class="tk-no"><span>HA-022</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">HASHMARK</div>
+          <div class="tk-tag">Hash identifier (by prefix and length) plus compute mode. Paste text and get SHA-1, SHA-256, SHA-384, SHA-512 simultaneously.</div>
+          <div class="tk-tech">SubtleCrypto · ID · Compute</div>
+        </div>
+      </a>
+
+      <a class="tk-card" href="#ha-023" data-tk-target="ha-023">
+        <div class="tk-no"><span>HA-023</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">ROTORS</div>
+          <div class="tk-tag">Working three-rotor Wehrmacht Enigma I. Rotors I-V, reflectors A/B/C, ring settings, start position, plugboard. Includes the double-stepping anomaly.</div>
+          <div class="tk-tech">Enigma I · Plugboard · Steckered</div>
+        </div>
+      </a>
+
+      <a class="tk-card" href="#ha-024" data-tk-target="ha-024">
+        <div class="tk-no"><span>HA-024</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">PADWORK</div>
+          <div class="tk-tag">One-time pad generator. Crypto-quality random with rejection-sample debiasing. Five-letter groups, A-Z or 0-9. Download or copy.</div>
+          <div class="tk-tech">getRandomValues · Print · Burn</div>
+        </div>
+      </a>
+
+      <a class="tk-card" href="#ha-025" data-tk-target="ha-025">
+        <div class="tk-no"><span>HA-025</span><span class="arr">→</span></div>
+        <div class="tk-body">
+          <div class="tk-name">KASISKI</div>
+          <div class="tk-tag">Vigenere cryptanalyzer. Paste ciphertext, get Index of Coincidence, Kasiski key-length candidates, chi-squared key derivation, and decryption.</div>
+          <div class="tk-tech">IoC · Kasiski · Frequency</div>
+        </div>
+      </a>
+
+    </div>
+    <div class="dismiss">click outside · Esc · or press T to close</div>
+  </div>
+</div>
+
 <div class="help-overlay" id="helpOverlay" role="dialog" aria-label="Keyboard shortcuts">
   <div class="help-card">
     <h3>KEYBOARD SHORTCUTS</h3>
     <dl>
       <dt>/</dt><dd>focus search</dd>
+      <dt>t</dt><dd>toolkit (interactive widgets)</dd>
       <dt>j</dt><dd>next part</dd>
       <dt>k</dt><dd>previous part</dd>
       <dt>g</dt><dd>go to top (HA-001)</dd>
@@ -2966,11 +3141,19 @@ PRIVMSG #gibson :hack the planet
 
   // ---------- KEYBOARD NAVIGATION ----------
   const helpOverlay = document.getElementById('helpOverlay');
+  const toolkitOverlay = document.getElementById('toolkitOverlay');
   function isTyping(){
     const el = document.activeElement;
     if(!el) return false;
     const t = el.tagName;
     return t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT' || el.isContentEditable;
+  }
+  function anyOverlayOpen(){
+    return helpOverlay.classList.contains('open') || toolkitOverlay.classList.contains('open');
+  }
+  function closeAllOverlays(){
+    helpOverlay.classList.remove('open');
+    toolkitOverlay.classList.remove('open');
   }
   function currentSectionIdx(){
     // Use the active nav item, or the section closest to top of viewport
@@ -2987,10 +3170,15 @@ PRIVMSG #gibson :hack the planet
     sections[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   document.addEventListener('keydown', e => {
-    // Help overlay: any key closes
-    if(helpOverlay.classList.contains('open')){
-      e.preventDefault();
-      helpOverlay.classList.remove('open');
+    // Overlays: Esc or t (for toolkit) closes; any other key closes help
+    if(anyOverlayOpen()){
+      if(e.key === 'Escape' || e.key === 't' || e.key === 'T' || e.key === '?'){
+        e.preventDefault(); closeAllOverlays(); return;
+      }
+      // For help overlay specifically, any key closes
+      if(helpOverlay.classList.contains('open')){
+        e.preventDefault(); helpOverlay.classList.remove('open'); return;
+      }
       return;
     }
     if(isTyping()) return;
@@ -2998,6 +3186,8 @@ PRIVMSG #gibson :hack the planet
     switch(e.key){
       case '?':
         e.preventDefault(); helpOverlay.classList.add('open'); break;
+      case 't': case 'T':
+        e.preventDefault(); toolkitOverlay.classList.add('open'); break;
       case 'j':
         e.preventDefault(); gotoSection(currentSectionIdx() + 1); break;
       case 'k':
@@ -3027,6 +3217,27 @@ PRIVMSG #gibson :hack the planet
   });
   document.getElementById('helpBtn').addEventListener('click', () => {
     helpOverlay.classList.add('open');
+  });
+
+  // TOOLKIT overlay: button, click-outside, and card-click navigation
+  toolkitOverlay.addEventListener('click', e => {
+    if(e.target === toolkitOverlay) toolkitOverlay.classList.remove('open');
+  });
+  document.getElementById('toolkitBtn').addEventListener('click', () => {
+    toolkitOverlay.classList.add('open');
+  });
+  toolkitOverlay.querySelectorAll('.tk-card').forEach(card => {
+    card.addEventListener('click', e => {
+      // Let the href navigate via hash, but close overlay first
+      toolkitOverlay.classList.remove('open');
+      // Small delay so the scroll target is visible behind the closing overlay
+      setTimeout(() => {
+        const id = card.getAttribute('data-tk-target');
+        const target = document.getElementById(id);
+        if(target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+      e.preventDefault();
+    });
   });
 
   // ============================================================
