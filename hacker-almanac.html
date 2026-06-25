@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-mode="day">
+<html lang="en" data-mode="night">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -551,15 +551,103 @@ h1,h2,h3,h4{
 }
 .colophon b{ color: var(--fg); font-weight: 700; }
 
+.widget.drag-over{
+  outline: 2px dashed var(--accent);
+  outline-offset: -6px;
+  background: var(--bg-tint);
+}
+
+/* HELP OVERLAY */
+.help-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 200;
+}
+.help-overlay.open{ display: flex; }
+.help-card{
+  background: var(--bg);
+  border: 2px solid var(--rule-dark);
+  padding: 24px 28px;
+  max-width: 460px;
+  width: calc(100% - 40px);
+  font-family: ui-monospace,"SF Mono",monospace;
+  font-size: 13px;
+}
+.help-card h3{
+  font-family: "Helvetica Neue Condensed","Arial Narrow",sans-serif;
+  font-stretch: condensed;
+  font-size: 18px;
+  margin: 0 0 12px;
+  letter-spacing: 0.04em;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--rule-dark);
+}
+.help-card dl{ display: grid; grid-template-columns: max-content 1fr; gap: 4px 18px; margin: 0; }
+.help-card dt{ color: var(--accent); }
+.help-card dd{ margin: 0; }
+.help-card .dismiss{
+  margin-top: 14px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  text-align: right;
+}
+
 /* HIDE non-matches when filtering */
 .ha-part.filtered{ display: none; }
 .sidebar a.nav-item.filtered{ display: none; }
 
+.help-btn{
+  font-family: ui-monospace,"SF Mono",monospace;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid var(--rule-dark);
+  background: var(--bg);
+  color: var(--fg);
+  width: 28px; height: 28px;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+}
+.help-btn:hover{ background: var(--accent); color: var(--accent-fg); }
+
 /* Print */
 @media print{
-  .sidebar, .topbar{ display: none; }
-  .main{ max-width: none; padding: 0; }
-  .ha-part{ page-break-inside: avoid; }
+  :root, :root[data-mode="night"]{
+    --bg: #FFFFFF;
+    --bg-alt: #FAFAFA;
+    --bg-tint: #FFF9E0;
+    --fg: #1A1A1A;
+    --fg-muted: #595959;
+    --rule: #D4D4D4;
+    --rule-dark: #1A1A1A;
+    --accent: #FFCB05;
+    --accent-fg: #1A1A1A;
+    --link: #0033CC;
+    --code-bg: #F2F2F2;
+    --scanlines: none;
+    --glow: none;
+  }
+  body::after{ display: none; }
+  .sidebar, .topbar, .help-overlay{ display: none !important; }
+  .app{ display: block; }
+  .main{ max-width: none; padding: 0; margin: 0; }
+  .ha-part{
+    page-break-before: always;
+    page-break-inside: avoid;
+    padding: 0;
+    margin: 0 0 24pt;
+    border-top: none;
+  }
+  .ha-part:first-of-type{ page-break-before: avoid; }
+  .part-title{ font-size: 24pt; }
+  .part-no{ font-size: 11pt; }
+  .spec-table{ font-size: 9pt; }
+  .widget{ border: 1px solid #999; }
+  a{ color: #000; text-decoration: none; }
+  .colophon{ page-break-before: always; }
 }
 
 /* Focus visibility */
@@ -572,7 +660,7 @@ h1,h2,h3,h4{
 <!-- ============================================================ SIDEBAR ============================================================ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-head">
-    <div class="brand">HACKER ALMANAC<small>FIELD INSTRUMENT 041 · v0.1.0</small></div>
+    <div class="brand">HACKER ALMANAC<small>FIELD INSTRUMENT 041 · v0.2.0</small></div>
   </div>
   <nav id="nav">
     <div class="chapter">Ch. 1 · Hardware</div>
@@ -638,10 +726,11 @@ h1,h2,h3,h4{
       <input type="text" id="search" placeholder="part no, name, or keyword" aria-label="Search the catalog">
     </div>
     <div class="mode-toggle" id="modeToggle" role="switch" aria-label="Toggle day/night mode" title="Toggle catalog mode">
-      <span class="opt active" data-mode-opt="day">STOCKROOM</span>
-      <span class="opt" data-mode-opt="night">OPS CENTER</span>
+      <span class="opt" data-mode-opt="day">STOCKROOM</span>
+      <span class="opt active" data-mode-opt="night">OPS CENTER</span>
     </div>
     <button class="scanline-toggle" id="scanToggle" title="Toggle CRT scanlines">SCAN: ON</button>
+    <button class="help-btn" id="helpBtn" title="Keyboard shortcuts (?)" aria-label="Show keyboard shortcuts">?</button>
   </header>
 
   <main class="main" id="content">
@@ -808,7 +897,7 @@ h1,h2,h3,h4{
     <div class="part-content">
       <h3>Inspector</h3>
       <div class="widget" id="hexscope-widget">
-        <div class="widget-label"><span>FILE INSPECTOR</span><span id="hexscope-status">no input</span></div>
+        <div class="widget-label"><span>FILE INSPECTOR · drop a file or paste hex</span><span id="hexscope-status">no input</span></div>
         <div class="row">
           <input type="file" id="hexscope-file" style="width:auto;">
           <button id="hexscope-clear">Clear</button>
@@ -1399,6 +1488,12 @@ Hit any key to stop autoboot:  3</pre>
           <input type="text" id="cidr-input" value="192.168.1.42/24" placeholder="10.0.0.0/8">
           <button id="cidr-calc" class="primary">CALC</button>
         </div>
+        <div class="row">
+          <label>Contains?</label>
+          <input type="text" id="cidr-check" placeholder="192.168.1.100">
+          <button id="cidr-check-btn">CHECK</button>
+          <span id="cidr-check-result" style="font-family:ui-monospace,monospace;font-size:12px;"></span>
+        </div>
         <dl class="grid-out" id="cidr-out"></dl>
       </div>
 
@@ -1916,12 +2011,23 @@ PRIVMSG #gibson :hack the planet
     <div class="part-content">
       <h3>Hash Identifier</h3>
       <div class="widget" id="hashmark-widget">
-        <div class="widget-label"><span>HASH FINGERPRINT</span><span id="hashmark-status">awaiting input</span></div>
-        <div class="widget-row">
-          <input type="text" id="hashmark-input" placeholder="5d41402abc4b2a76b9719d911017c592" autocomplete="off" spellcheck="false">
+        <div class="widget-label">
+          <span><a href="#" id="hashmark-mode-id" data-active="true" style="text-decoration:none;">IDENTIFY</a> · <a href="#" id="hashmark-mode-compute" style="text-decoration:none;">COMPUTE</a></span>
+          <span id="hashmark-status">awaiting input</span>
         </div>
-        <dl class="grid-out" id="hashmark-out"></dl>
-        <div id="hashmark-candidates" style="margin-top:8px;font-size:12px;"></div>
+        <div id="hashmark-pane-id">
+          <input type="text" id="hashmark-input" placeholder="5d41402abc4b2a76b9719d911017c592" autocomplete="off" spellcheck="false">
+          <dl class="grid-out" id="hashmark-out"></dl>
+          <div id="hashmark-candidates" style="margin-top:8px;font-size:12px;"></div>
+        </div>
+        <div id="hashmark-pane-compute" style="display:none;">
+          <textarea id="hashmark-text" rows="3" placeholder="Paste text to hash..."></textarea>
+          <div class="row" style="margin-top:6px;">
+            <button id="hashmark-compute-btn" class="primary">COMPUTE ALL</button>
+            <span style="font-size:11px;color:var(--fg-muted);">SHA-1 / SHA-256 / SHA-384 / SHA-512 (MD5 not in SubtleCrypto by design)</span>
+          </div>
+          <dl class="grid-out" id="hashmark-computed" style="margin-top:8px;"></dl>
+        </div>
       </div>
 
       <h3>Hash Family Reference</h3>
@@ -2080,6 +2186,7 @@ PRIVMSG #gibson :hack the planet
           </label>
           <button id="pad-gen" class="primary">GENERATE</button>
           <button id="pad-copy">COPY</button>
+          <button id="pad-download">DOWNLOAD</button>
         </div>
         <pre id="pad-out" style="margin-top:8px;font-size:12px;">Press GENERATE to draw from crypto.getRandomValues().</pre>
       </div>
@@ -2728,7 +2835,7 @@ PRIVMSG #gibson :hack the planet
 
   <footer class="colophon">
     <div style="max-width: 980px; margin: 0 auto; padding: 0 40px;">
-      <p><b>HACKER ALMANAC</b> · Field Instrument 041 · v0.1.0 · by M.B. Parks (N1HNP)<br>
+      <p><b>HACKER ALMANAC</b> · Field Instrument 041 · v0.2.0 · by M.B. Parks (N1HNP)<br>
       A companion to Maker Almanac (FI-007). Single-file, no build step, GPL-3.0.<br>
       Reference material is for study, defense, and historical context. The catalog does not ship weaponized code.<br>
       "Make. Hack. Learn. Share. Repeat."</p>
@@ -2737,6 +2844,24 @@ PRIVMSG #gibson :hack the planet
 </div>
 
 </div><!-- /.app -->
+
+<div class="help-overlay" id="helpOverlay" role="dialog" aria-label="Keyboard shortcuts">
+  <div class="help-card">
+    <h3>KEYBOARD SHORTCUTS</h3>
+    <dl>
+      <dt>/</dt><dd>focus search</dd>
+      <dt>j</dt><dd>next part</dd>
+      <dt>k</dt><dd>previous part</dd>
+      <dt>g</dt><dd>go to top (HA-001)</dd>
+      <dt>G</dt><dd>go to bottom (HA-032)</dd>
+      <dt>m</dt><dd>toggle stockroom / ops center</dd>
+      <dt>s</dt><dd>toggle scanlines (night mode)</dd>
+      <dt>?</dt><dd>show this card</dd>
+      <dt>Esc</dt><dd>close / clear search</dd>
+    </dl>
+    <div class="dismiss">press any key to close</div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -2837,6 +2962,71 @@ PRIVMSG #gibson :hack the planet
       e.preventDefault();
       search.focus();
     }
+  });
+
+  // ---------- KEYBOARD NAVIGATION ----------
+  const helpOverlay = document.getElementById('helpOverlay');
+  function isTyping(){
+    const el = document.activeElement;
+    if(!el) return false;
+    const t = el.tagName;
+    return t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT' || el.isContentEditable;
+  }
+  function currentSectionIdx(){
+    // Use the active nav item, or the section closest to top of viewport
+    let active = navItems.findIndex(a => a.classList.contains('active'));
+    if(active >= 0) return active;
+    const visible = sections.findIndex(s => {
+      const r = s.getBoundingClientRect();
+      return r.bottom > 80;
+    });
+    return Math.max(0, visible);
+  }
+  function gotoSection(idx){
+    idx = Math.max(0, Math.min(sections.length - 1, idx));
+    sections[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.addEventListener('keydown', e => {
+    // Help overlay: any key closes
+    if(helpOverlay.classList.contains('open')){
+      e.preventDefault();
+      helpOverlay.classList.remove('open');
+      return;
+    }
+    if(isTyping()) return;
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    switch(e.key){
+      case '?':
+        e.preventDefault(); helpOverlay.classList.add('open'); break;
+      case 'j':
+        e.preventDefault(); gotoSection(currentSectionIdx() + 1); break;
+      case 'k':
+        e.preventDefault(); gotoSection(currentSectionIdx() - 1); break;
+      case 'g':
+        e.preventDefault(); gotoSection(0); break;
+      case 'G':
+        e.preventDefault(); gotoSection(sections.length - 1); break;
+      case 'm':
+        e.preventDefault();
+        setMode(root.getAttribute('data-mode') === 'day' ? 'night' : 'day');
+        break;
+      case 's':
+        if(root.getAttribute('data-mode') === 'night'){
+          e.preventDefault();
+          scanToggle.click();
+        }
+        break;
+      case 'Escape':
+        if(search.value){ search.value=''; applyFilter(''); }
+        break;
+    }
+  });
+  // Click outside help card closes
+  helpOverlay.addEventListener('click', e => {
+    if(e.target === helpOverlay) helpOverlay.classList.remove('open');
+  });
+  document.getElementById('helpBtn').addEventListener('click', () => {
+    helpOverlay.classList.add('open');
   });
 
   // ============================================================
@@ -2959,6 +3149,25 @@ PRIVMSG #gibson :hack the planet
     clearBtn.addEventListener('click', () => {
       paste.value = ''; file.value = ''; out.textContent = 'Awaiting input. Drop a file or paste a hex sequence above.';
       meta.innerHTML = ''; status.textContent = 'no input';
+    });
+
+    // Drag-and-drop on the widget panel
+    const dz = document.getElementById('hexscope-widget');
+    ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      dz.classList.add('drag-over');
+    }));
+    ['dragleave','dragend','drop'].forEach(ev => dz.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      if(ev === 'dragleave' && e.target !== dz) return;
+      dz.classList.remove('drag-over');
+    }));
+    dz.addEventListener('drop', e => {
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(!f) return;
+      const r = new FileReader();
+      r.onload = ev => analyze(new Uint8Array(ev.target.result));
+      r.readAsArrayBuffer(f.slice(0, 8192));
     });
   })();
 
@@ -3089,6 +3298,29 @@ PRIVMSG #gibson :hack the planet
     btn.addEventListener('click', calc);
     input.addEventListener('keydown', e => { if(e.key === 'Enter') calc(); });
     calc(); // run once with default
+
+    // Contains check
+    const checkInput = document.getElementById('cidr-check');
+    const checkBtn = document.getElementById('cidr-check-btn');
+    const checkResult = document.getElementById('cidr-check-result');
+    function check(){
+      const raw = (input.value || '').trim();
+      const [ipStr, prefStr] = raw.split('/');
+      const netIp = parseIp(ipStr || '');
+      const pref = parseInt(prefStr, 10);
+      const testIp = parseIp((checkInput.value || '').trim());
+      if(netIp === null || isNaN(pref) || testIp === null){
+        checkResult.textContent = 'bad input';
+        checkResult.style.color = 'var(--fg-muted)';
+        return;
+      }
+      const mask = pref === 0 ? 0 : (0xFFFFFFFF << (32 - pref)) >>> 0;
+      const inSubnet = ((netIp & mask) >>> 0) === ((testIp & mask) >>> 0);
+      checkResult.textContent = inSubnet ? '✓ IN ' + fmtIp((netIp & mask) >>> 0) + '/' + pref : '✗ outside ' + fmtIp((netIp & mask) >>> 0) + '/' + pref;
+      checkResult.style.color = inSubnet ? 'var(--link)' : 'var(--accent)';
+    }
+    checkBtn.addEventListener('click', check);
+    checkInput.addEventListener('keydown', e => { if(e.key === 'Enter') check(); });
   })();
 
   // ---------- HA-022 HASHMARK ----------
@@ -3166,6 +3398,48 @@ PRIVMSG #gibson :hack the planet
       }
     }
     input.addEventListener('input', () => identify(input.value));
+
+    // Mode switcher
+    const paneId = document.getElementById('hashmark-pane-id');
+    const paneComp = document.getElementById('hashmark-pane-compute');
+    const linkId = document.getElementById('hashmark-mode-id');
+    const linkComp = document.getElementById('hashmark-mode-compute');
+    function setMode(m){
+      paneId.style.display = m === 'id' ? '' : 'none';
+      paneComp.style.display = m === 'compute' ? '' : 'none';
+      linkId.style.fontWeight = m === 'id' ? '700' : '400';
+      linkComp.style.fontWeight = m === 'compute' ? '700' : '400';
+      linkId.style.color = m === 'id' ? 'var(--accent)' : 'var(--fg-muted)';
+      linkComp.style.color = m === 'compute' ? 'var(--accent)' : 'var(--fg-muted)';
+    }
+    linkId.addEventListener('click', e => { e.preventDefault(); setMode('id'); status.textContent = 'identify mode'; });
+    linkComp.addEventListener('click', e => { e.preventDefault(); setMode('compute'); status.textContent = 'compute mode'; });
+    setMode('id');
+
+    // Compute mode
+    const text = document.getElementById('hashmark-text');
+    const computed = document.getElementById('hashmark-computed');
+    const computeBtn = document.getElementById('hashmark-compute-btn');
+    async function compute(){
+      const t = text.value || '';
+      if(!t){ computed.innerHTML = '<dt>Status</dt><dd>Paste text first.</dd>'; return; }
+      status.textContent = 'computing...';
+      const enc = new TextEncoder().encode(t);
+      const algs = ['SHA-1','SHA-256','SHA-384','SHA-512'];
+      const rows = [['Input length', enc.length + ' bytes']];
+      for(const alg of algs){
+        try {
+          const hb = await crypto.subtle.digest(alg, enc);
+          const hex = Array.from(new Uint8Array(hb)).map(b => b.toString(16).padStart(2,'0')).join('');
+          rows.push([alg, hex]);
+        } catch(e){
+          rows.push([alg, 'error: ' + e.message]);
+        }
+      }
+      computed.innerHTML = rows.map(([k,v]) => '<dt>'+k+'</dt><dd style="word-break:break-all;">'+v+'</dd>').join('');
+      status.textContent = 'computed';
+    }
+    computeBtn.addEventListener('click', compute);
   })();
 
   // ---------- HA-023 ENIGMA ----------
@@ -3311,6 +3585,22 @@ PRIVMSG #gibson :hack the planet
       } catch(e){
         status.textContent = 'copy failed (clipboard unavailable)';
       }
+    });
+    document.getElementById('pad-download').addEventListener('click', () => {
+      const text = out.textContent || '';
+      if(!text || text.startsWith('Press GENERATE')){
+        status.textContent = 'nothing to download; press GENERATE first';
+        return;
+      }
+      const stamp = new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);
+      const blob = new Blob([text + '\n'], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pad-' + stamp + '.txt';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      status.textContent = 'downloaded. burn after use.';
     });
   })();
 
